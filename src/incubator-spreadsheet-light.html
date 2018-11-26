@@ -1,0 +1,171 @@
+<!--
+@license
+Copyright (c) 2018 Vaadin Ltd.
+This program is available under Commercial Vaadin Add-On License 3.0 (CVALv3).
+
+See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete license.
+-->
+
+<link rel="import" href="../../polymer/polymer-element.html">
+<link rel="import" href="../../vaadin-themable-mixin/vaadin-themable-mixin.html">
+<link rel="import" href="../../vaadin-element-mixin/vaadin-element-mixin.html">
+<link rel="import" href="../../vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../vaadin-text-field/vaadin-text-field.html">
+
+<dom-module id="incubator-spreadsheet-light">
+  <template>
+    <style>
+      vaadin-text-field {
+        width: 100%;
+      }
+    </style>
+
+    <vaadin-grid id="spreadsheet" items="{{_spreadsheetData}}">
+      <template is="dom-repeat" items="{{_columns}}" as="col">
+        <vaadin-grid-column header="[[col.title]]" path="[[col.field]]"></vaadin-grid-column>
+      </template>
+    </vaadin-grid>
+  </template>
+
+  <script>
+    (function () {
+      /**
+       * `<incubator-spreadsheet-light>` is a template for incubator components.
+       *
+       * ```
+       * <incubator-spreadsheet-light>
+       * </incubator-spreadsheet-light>
+       * ```
+       *
+       * @memberof Vaadin
+       * @demo demo/index.html
+       */
+      class IncubatorSpreadsheetLight extends Vaadin.ElementMixin(Vaadin.ThemableMixin(Polymer.Element)) {
+        static get is() {
+          return 'incubator-spreadsheet-light';
+        }
+
+        static get properties() {
+          return {
+            _spreadsheetData: {
+              type: Array,
+              value: []
+            },
+
+            _referenceSequence: {
+              type: Array,
+              computed: '_generateReferenceSequence(10)'
+            }
+          };
+        }
+
+        /**
+         * Array of strings describing multi-property observer methods and their
+         * dependant properties
+         */
+        static get observers() {
+          return [
+            '_spreadsheetDataChanged(_spreadsheetData)'
+          ];
+        }
+
+        ready() {
+          super.ready();
+
+          // Assign the variable holding the columns of the grid.
+          this._columns = [...this._referenceSequence];
+
+          // Generate an empty instance of datum.
+          const datum = this._getEmptyRow();
+
+          // TODO: Make this more suffisticated.
+          for (var i = 0, l = 2; i < l; i++) {
+            this.push('_spreadsheetData', Object.assign({}, datum));
+          }
+
+          // This should be done with no dependencies to Polymer
+          const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column');
+          columns.forEach(c => {
+            c.renderer = (root, column, rowData) => {
+              root.innerHTML = `<vaadin-text-field value="${rowData.item[c.path]}"></vaadin-text-field>`
+            }
+          });
+
+          // https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
+          let ctrlDown = false;
+          const ctrlKey = 17,
+                cmdKey = 91,
+                vKey = 86,
+                cKey = 67;
+
+          // https://stackoverflow.com/questions/6413036/get-current-clipboard-content
+          document.addEventListener('keydown', (e) => {
+            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = true;
+
+            if (ctrlDown && (e.keyCode == vKey || e.keyCode == cKey)) {
+              navigator.clipboard.readText()
+                .then(text => {
+                  const newData = [];
+                  const lines = text.split('\n');
+                  lines.forEach((line, lineIndex) => {
+                    const cells = line.split('\t');
+                    const lineToPaste = this._getEmptyRow();
+                    cells.forEach((cell, cellIndex) => {
+                      lineToPaste[this._columns[cellIndex].field] = cell;
+                    });
+                    newData.push(lineToPaste);
+                  });
+
+                  this.set('_spreadsheetData', newData);
+                })
+                .catch(err => {
+                  console.error('Failed to read clipboard contents: ', err);
+                });
+            };
+          });
+          document.addEventListener('keyup', (e) => {
+            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = false;
+          });
+        }
+
+        _spreadsheetDataChanged(newVal, oldVal) {
+
+        }
+
+        _getEmptyRow() {
+          const _emptyRow = {};
+
+          this._columns.forEach(c => {
+            _emptyRow[c.field] = '';
+          });
+
+          return _emptyRow;
+        }
+
+        _generateReferenceSequence(count) {
+          // Generate english alphabet from A to Z.
+          const referenceSequence = [];
+          for (var i = 65, l = i + count; i < l; i++) {
+            referenceSequence.push({
+              title: String.fromCharCode(i),
+              field: String.fromCharCode(i).toLowerCase()
+            });
+          }
+
+          return referenceSequence;
+        }
+      }
+
+      customElements.define(IncubatorSpreadsheetLight.is, IncubatorSpreadsheetLight);
+
+      /**
+       * @namespace Vaadin
+       */
+      window.Vaadin.IncubatorSpreadsheetLight = IncubatorSpreadsheetLight;
+
+      if (window.Vaadin.runIfDevelopmentMode) {
+        window.Vaadin.runIfDevelopmentMode('vaadin-license-checker', IncubatorSpreadsheetLight);
+      }
+    })();
+  </script>
+</dom-module>

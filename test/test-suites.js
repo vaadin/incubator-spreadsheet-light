@@ -1,0 +1,3 @@
+window.IncubatorSpreadsheetLightSuites = [
+  'sample.html',
+];
