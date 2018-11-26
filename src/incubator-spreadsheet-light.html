@@ -55,6 +55,11 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             _referenceSequence: {
               type: Array,
               computed: '_generateReferenceSequence(10)'
+            },
+
+            _minimumRowsToDisplay: {
+              type: Number,
+              value: 10
             }
           };
         }
@@ -75,13 +80,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // Assign the variable holding the columns of the grid.
           this._columns = [...this._referenceSequence];
 
-          // Generate an empty instance of datum.
-          const datum = this._getEmptyRow();
-
-          // TODO: Make this more suffisticated.
-          for (var i = 0, l = 2; i < l; i++) {
-            this.push('_spreadsheetData', Object.assign({}, datum));
-          }
+          this.set('_spreadsheetData', this._getEmptySpreadsheetData(this._minimumRowsToDisplay));
 
           // This should be done with no dependencies to Polymer
           const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column');
@@ -105,15 +104,13 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             if (ctrlDown && (e.keyCode == vKey || e.keyCode == cKey)) {
               navigator.clipboard.readText()
                 .then(text => {
-                  const newData = [];
+                  const newData = this._getEmptySpreadsheetData(this._minimumRowsToDisplay);
                   const lines = text.split('\n');
                   lines.forEach((line, lineIndex) => {
                     const cells = line.split('\t');
-                    const lineToPaste = this._getEmptyRow();
                     cells.forEach((cell, cellIndex) => {
-                      lineToPaste[this._columns[cellIndex].field] = cell;
+                      newData[lineIndex][this._columns[cellIndex].field] = cell;
                     });
-                    newData.push(lineToPaste);
                   });
 
                   this.set('_spreadsheetData', newData);
@@ -140,6 +137,17 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           });
 
           return _emptyRow;
+        }
+
+        _getEmptySpreadsheetData(rows) {
+          const datum = this._getEmptyRow(), data = [];
+
+          // TODO: Make this more suffisticated.
+          for (var i = 0, l = rows; i < l; i++) {
+            data.push(Object.assign({}, datum));
+          }
+
+          return data;
         }
 
         _generateReferenceSequence(count) {
