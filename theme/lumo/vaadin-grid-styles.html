@@ -1,0 +1,23 @@
+<link rel="import" href="../../../vaadin-lumo-styles/color.html">
+<link rel="import" href="../../../vaadin-lumo-styles/spacing.html">
+<link rel="import" href="../../../vaadin-lumo-styles/sizing.html">
+
+<dom-module id="lumo-incubator-spreadsheet-light-grid" theme-for="vaadin-grid">
+  <template>
+    <style>
+      :host thead [part="row"] th, :host thead [part="row"] td {
+        min-height: auto!important;
+        height: var(--lumo-size-xs)!important;
+      }
+
+      :host thead [part="row"] th {
+        background-color: #fafafa;
+      }
+
+      :host [part="row"] td[first-column] {
+        background-color: #fafafa;
+        border-right: var(--_lumo-grid-secondary-border-color) 1px solid;
+      }
+    </style>
+  </template>
+</dom-module>

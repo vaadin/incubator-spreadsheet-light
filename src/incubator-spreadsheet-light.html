@@ -21,8 +21,9 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
     </style>
 
     <vaadin-grid id="spreadsheet" items="{{_spreadsheetData}}">
+      <vaadin-grid-column width="60px" flex-grow="0" text-align="center" id="indexColumn"></vaadin-grid-column>
       <template is="dom-repeat" items="{{_columns}}" as="col">
-        <vaadin-grid-column header="[[col.title]]" path="[[col.field]]"></vaadin-grid-column>
+        <vaadin-grid-column id="[[col.colId]]" header="[[col.title]]" path="[[col.field]]"></vaadin-grid-column>
       </template>
     </vaadin-grid>
   </template>
@@ -83,12 +84,17 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           this.set('_spreadsheetData', this._getEmptySpreadsheetData(this._minimumRowsToDisplay));
 
           // This should be done with no dependencies to Polymer
-          const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column');
+          const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column[id^="col-"]');
           columns.forEach(c => {
             c.renderer = (root, column, rowData) => {
               root.innerHTML = `<vaadin-text-field value="${rowData.item[c.path]}"></vaadin-text-field>`
             }
           });
+
+          const indexCol = Polymer.dom(this.root).querySelector('vaadin-grid-column#indexColumn');
+          indexCol.renderer = (root, column, rowData) => {
+            root.textContent = rowData.index + 1;
+          }
 
           // https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
           let ctrlDown = false;
@@ -156,7 +162,8 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           for (var i = 65, l = i + count; i < l; i++) {
             referenceSequence.push({
               title: String.fromCharCode(i),
-              field: String.fromCharCode(i).toLowerCase()
+              field: String.fromCharCode(i).toLowerCase(),
+              colId: `col-${String.fromCharCode(i).toLowerCase()}`
             });
           }
 
