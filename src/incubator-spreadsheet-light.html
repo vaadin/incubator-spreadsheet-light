@@ -10,14 +10,12 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 <link rel="import" href="../../vaadin-themable-mixin/vaadin-themable-mixin.html">
 <link rel="import" href="../../vaadin-element-mixin/vaadin-element-mixin.html">
 <link rel="import" href="../../vaadin-grid/vaadin-grid.html">
-<link rel="import" href="../../vaadin-text-field/vaadin-text-field.html">
+
+<link rel="import" href="incubator-spreadsheet-cell.html">
 
 <dom-module id="incubator-spreadsheet-light">
   <template>
     <style>
-      vaadin-text-field {
-        width: 100%;
-      }
     </style>
 
     <vaadin-grid id="spreadsheet" items="{{_spreadsheetData}}">
@@ -65,10 +63,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           };
         }
 
-        /**
-         * Array of strings describing multi-property observer methods and their
-         * dependant properties
-         */
         static get observers() {
           return [
             '_spreadsheetDataChanged(_spreadsheetData)'
@@ -87,7 +81,45 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column[id^="col-"]');
           columns.forEach(c => {
             c.renderer = (root, column, rowData) => {
-              root.innerHTML = `<vaadin-text-field value="${rowData.item[c.path]}"></vaadin-text-field>`
+              if (!root.hasChildNodes()) {
+                const cell = document.createElement('incubator-spreadsheet-cell');
+                cell.setAttribute('col', c.path);
+                cell.setAttribute('row', rowData.index + 1);
+                cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
+                  if(ev.detail.row - 1 > 0) {
+                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) - 1}"]`);
+                    cellToSelect.focus();
+                  }
+                });
+                cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
+                  if (parseInt(ev.detail.row) + 1 <= this.$.spreadsheet.items.length) {
+                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) + 1}"]`);
+                    cellToSelect.focus();
+                  }
+                });
+                cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
+                  const colIndex = this._referenceSequence.findIndex((item) => {
+                    return item.field === ev.detail.col;
+                  });
+                  if (colIndex - 1 >= 0) {
+                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex - 1].field}"][row="${ev.detail.row}"]`);
+                    cellToSelect.focus();
+                  }
+                });
+                cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
+                  const colIndex = this._referenceSequence.findIndex((item) => {
+                    return item.field === ev.detail.col;
+                  });
+                  if (colIndex + 1 < this._referenceSequence.length) {
+                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex + 1].field}"][row="${ev.detail.row}"]`);
+                    cellToSelect.focus();
+                  }
+                });
+                cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
+                  console.log('focused', ev.detail.col, ev.detail.row);
+                });
+                root.append(cell);
+              }
             }
           });
 
@@ -99,9 +131,9 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
           let ctrlDown = false;
           const ctrlKey = 17,
-                cmdKey = 91,
-                vKey = 86,
-                cKey = 67;
+            cmdKey = 91,
+            vKey = 86,
+            cKey = 67;
 
           // https://stackoverflow.com/questions/6413036/get-current-clipboard-content
           document.addEventListener('keydown', (e) => {
@@ -146,7 +178,8 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         _getEmptySpreadsheetData(rows) {
-          const datum = this._getEmptyRow(), data = [];
+          const datum = this._getEmptyRow(),
+            data = [];
 
           // TODO: Make this more suffisticated.
           for (var i = 0, l = rows; i < l; i++) {
@@ -168,6 +201,11 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           }
 
           return referenceSequence;
+        }
+
+        _cellSelected(e) {
+          debugger
+          console.log(e);
         }
       }
 

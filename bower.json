@@ -30,8 +30,7 @@
     "vaadin-lumo-styles": "vaadin/vaadin-lumo-styles#^1.0.0",
     "vaadin-dialog": "vaadin/vaadin-dialog#^2.0.2",
     "vaadin-button": "vaadin/vaadin-button#^2.0.1",
-    "vaadin-grid": "vaadin/vaadin-grid#^5.2.4",
-    "vaadin-text-field": "vaadin/vaadin-text-field#^2.1.4"
+    "vaadin-grid": "vaadin/vaadin-grid#^5.2.4"
   },
   "devDependencies": {
     "iron-component-page": "^3.0.0",
