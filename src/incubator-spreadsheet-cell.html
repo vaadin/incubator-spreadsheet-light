@@ -62,12 +62,15 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
           this._boundCellSelected = this._cellSelected.bind(this);
           this._boundLabelKeyDown = this._labelKeyDown.bind(this);
+          this._boundLabelKeyUp = this._labelKeyUp.bind(this);
+          this._ctrlDown = false;
         }
 
         connectedCallback() {
           super.connectedCallback();
 
           this.$.label.addEventListener('keydown', this._boundLabelKeyDown);
+          this.$.label.addEventListener('keyup', this._boundLabelKeyUp);
           this.$.label.addEventListener('focus', this._boundCellSelected);
         }
 
@@ -75,6 +78,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           super.disconnectedCallback();
 
           this.$.label.removeEventListener('keydown', this._boundLabelKeyDown);
+          this.$.label.removeEventListener('keyup', this._boundLabelKeyUp);
           this.$.label.removeEventListener('focus', this._boundCellSelected);
         }
 
@@ -116,12 +120,25 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           }));
         }
 
+        _labelKeyUp(ev) {
+          // Control key code: 17
+          // Cmd key code: 91
+          switch (ev.keyCode) {
+            case 17:
+            case 91:
+              this._ctrlDown = false;
+          }
+        }
+
         _labelKeyDown(ev) {
           // Prevent new line
           if (ev.keyCode === 13) {
             ev.preventDefault();
           } else {
             // Arrow keys codes: LURD 37, 38, 39 40
+            // Control key code: 17
+            // Cmd key code: 91
+            // V key: 86
             switch (ev.keyCode) {
               case 37:
                 this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-left', {
@@ -155,6 +172,20 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 return;
               case 40:
                 this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-down', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
+              case 17:
+              case 91:
+                this._ctrlDown = true;
+                return;
+              case 86:
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-paste', {
                   bubbles: true,
                   composed: true,
                   detail: {

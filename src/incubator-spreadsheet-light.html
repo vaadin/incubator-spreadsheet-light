@@ -59,6 +59,15 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             _minimumRowsToDisplay: {
               type: Number,
               value: 10
+            },
+
+            _selectedCell: {
+              type: Object,
+              // TODO: This should be done more sensibly.
+              value: {
+                col: 'a',
+                row: 1
+              }
             }
           };
         }
@@ -127,8 +136,14 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 }
               });
               cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
-                console.log('focused', ev.detail.col, ev.detail.row);
+                this.set('_selectedCell', {
+                  col: ev.detail.col,
+                  row: ev.detail.row
+                });
               });
+              cell.addEventListener('incubator-spreadsheet-cell-paste', (ev) => {
+                this._pasteFromClipboard();
+              })
 
               while (root.firstChild) {
                 root.removeChild(root.firstChild);
@@ -147,35 +162,47 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           let ctrlDown = false;
           const ctrlKey = 17,
             cmdKey = 91,
-            vKey = 86,
-            cKey = 67;
+            vKey = 86;
 
-          // https://stackoverflow.com/questions/6413036/get-current-clipboard-content
           document.addEventListener('keydown', (e) => {
-            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = true;
+            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) {
+              ctrlDown = true;
+            }
 
-            if (ctrlDown && (e.keyCode == vKey || e.keyCode == cKey)) {
-              navigator.clipboard.readText()
-                .then(text => {
-                  const newData = this._getEmptySpreadsheetData(this._minimumRowsToDisplay);
-                  const lines = text.split('\n');
-                  lines.forEach((line, lineIndex) => {
-                    const cells = line.split('\t');
-                    cells.forEach((cell, cellIndex) => {
-                      newData[lineIndex][this._columns[cellIndex].field] = cell;
-                    });
-                  });
-
-                  this.set('_spreadsheetData', newData);
-                })
-                .catch(err => {
-                  console.error('Failed to read clipboard contents: ', err);
-                });
+            if (ctrlDown && (e.keyCode == vKey)) {
+              this._pasteFromClipboard();
             };
           });
           document.addEventListener('keyup', (e) => {
             if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = false;
           });
+        }
+
+        _pasteFromClipboard() {
+          // https://stackoverflow.com/questions/6413036/get-current-clipboard-content
+          navigator.clipboard.readText()
+            .then(text => {
+              const lines = text.split('\n');
+              const requiredLines = this._selectedCell.row + lines.length;
+              const rowsToDisplay = this._minimumRowsToDisplay > requiredLines ? this._minimumRowsToDisplay :
+                requiredLines;
+              const colIndex = this._referenceSequence.findIndex((item) => {
+                return item.field === this._selectedCell.col;
+              });
+              const newData = this._getEmptySpreadsheetData(rowsToDisplay);
+              lines.forEach((line, lineIndex) => {
+                const cells = line.split('\t');
+                cells.forEach((cell, cellIndex) => {
+                  newData[parseInt(this._selectedCell.row) + lineIndex - 1][this._columns[cellIndex +
+                    colIndex].field] = cell;
+                });
+              });
+
+              this.set('_spreadsheetData', newData);
+            })
+            .catch(err => {
+              console.error('Failed to read clipboard contents: ', err);
+            });
         }
 
         _spreadsheetDataChanged(newVal, oldVal) {
