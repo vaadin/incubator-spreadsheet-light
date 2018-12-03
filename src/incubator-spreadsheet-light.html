@@ -75,51 +75,66 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // Assign the variable holding the columns of the grid.
           this._columns = [...this._referenceSequence];
 
+          // Grid should be rendered.
+          this._shouldRender = true;
+
           this.set('_spreadsheetData', this._getEmptySpreadsheetData(this._minimumRowsToDisplay));
 
           // This should be done with no dependencies to Polymer
           const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column[id^="col-"]');
           columns.forEach(c => {
             c.renderer = (root, column, rowData) => {
-              if (!root.hasChildNodes()) {
-                const cell = document.createElement('incubator-spreadsheet-cell');
-                cell.setAttribute('col', c.path);
-                cell.setAttribute('row', rowData.index + 1);
-                cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
-                  if(ev.detail.row - 1 > 0) {
-                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) - 1}"]`);
-                    cellToSelect.focus();
-                  }
+              const cell = document.createElement('incubator-spreadsheet-cell');
+              cell.setAttribute('col', c.path);
+              cell.setAttribute('row', rowData.index + 1);
+              cell.setAttribute('value', rowData.item[c.path]);
+              cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
+                if (ev.detail.row - 1 > 0) {
+                  const cellToSelect = Polymer.dom(this.root).querySelector(
+                    `incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) - 1}"]`
+                  );
+                  cellToSelect.focus();
+                }
+              });
+              cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
+                if (parseInt(ev.detail.row) + 1 <= this.$.spreadsheet.items.length) {
+                  const cellToSelect = Polymer.dom(this.root).querySelector(
+                    `incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) + 1}"]`
+                  );
+                  cellToSelect.focus();
+                }
+              });
+              cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
+                const colIndex = this._referenceSequence.findIndex((item) => {
+                  return item.field === ev.detail.col;
                 });
-                cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
-                  if (parseInt(ev.detail.row) + 1 <= this.$.spreadsheet.items.length) {
-                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) + 1}"]`);
-                    cellToSelect.focus();
-                  }
+                if (colIndex - 1 >= 0) {
+                  const cellToSelect = Polymer.dom(this.root).querySelector(
+                    `incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex - 1].field}"][row="${ev.detail.row}"]`
+                  );
+                  cellToSelect.focus();
+                }
+              });
+              cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
+                const colIndex = this._referenceSequence.findIndex((item) => {
+                  return item.field === ev.detail.col;
                 });
-                cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
-                  const colIndex = this._referenceSequence.findIndex((item) => {
-                    return item.field === ev.detail.col;
-                  });
-                  if (colIndex - 1 >= 0) {
-                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex - 1].field}"][row="${ev.detail.row}"]`);
-                    cellToSelect.focus();
-                  }
-                });
-                cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
-                  const colIndex = this._referenceSequence.findIndex((item) => {
-                    return item.field === ev.detail.col;
-                  });
-                  if (colIndex + 1 < this._referenceSequence.length) {
-                    const cellToSelect = Polymer.dom(this.root).querySelector(`incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex + 1].field}"][row="${ev.detail.row}"]`);
-                    cellToSelect.focus();
-                  }
-                });
-                cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
-                  console.log('focused', ev.detail.col, ev.detail.row);
-                });
-                root.append(cell);
+                if (colIndex + 1 < this._referenceSequence.length) {
+                  const cellToSelect = Polymer.dom(this.root).querySelector(
+                    `incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex + 1].field}"][row="${ev.detail.row}"]`
+                  );
+                  cellToSelect.focus();
+                }
+              });
+              cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
+                console.log('focused', ev.detail.col, ev.detail.row);
+              });
+
+              while (root.firstChild) {
+                root.removeChild(root.firstChild);
               }
+
+              root.append(cell);
             }
           });
 
