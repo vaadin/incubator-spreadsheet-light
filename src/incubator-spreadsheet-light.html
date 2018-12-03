@@ -183,12 +183,13 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           navigator.clipboard.readText()
             .then(text => {
               const lines = text.split('\n');
-              const requiredLines = this._selectedCell.row + lines.length;
+              const requiredLines = parseInt(this._selectedCell.row) + lines.length;
               const rowsToDisplay = this._minimumRowsToDisplay > requiredLines ? this._minimumRowsToDisplay :
                 requiredLines;
               const colIndex = this._referenceSequence.findIndex((item) => {
                 return item.field === this._selectedCell.col;
               });
+
               const newData = this._getEmptySpreadsheetData(rowsToDisplay);
               lines.forEach((line, lineIndex) => {
                 const cells = line.split('\t');
