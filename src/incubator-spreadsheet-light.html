@@ -177,7 +177,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 return item.field === this._selectedCell.col;
               });
 
-              const newData = this._getEmptySpreadsheetData(rowsToDisplay);
+              const newData = this._getEmptySpreadsheetData(rowsToDisplay, this._spreadsheetData);
               lines.forEach((line, lineIndex) => {
                 const cells = line.split('\t');
                 cells.forEach((cell, cellIndex) => {
@@ -207,13 +207,17 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           return _emptyRow;
         }
 
-        _getEmptySpreadsheetData(rows) {
+        _getEmptySpreadsheetData(rows, initialValue = []) {
           const datum = this._getEmptyRow(),
             data = [];
 
           // TODO: Make this more suffisticated.
           for (var i = 0, l = rows; i < l; i++) {
-            data.push(Object.assign({}, datum));
+            if (initialValue[i] !== undefined) {
+              data.push(Object.assign({}, initialValue[i]));
+            } else {
+              data.push(Object.assign({}, datum));
+            }
           }
 
           return data;
