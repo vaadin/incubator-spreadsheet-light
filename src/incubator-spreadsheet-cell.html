@@ -100,7 +100,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             },
 
             row: {
-              type: String
+              type: Number
             }
           };
         }
@@ -131,15 +131,22 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         _labelKeyDown(ev) {
-          // Prevent new line
-          if (ev.keyCode === 13) {
-            ev.preventDefault();
-          } else {
             // Arrow keys codes: LURD 37, 38, 39 40
             // Control key code: 17
             // Cmd key code: 91
             // V key: 86
             switch (ev.keyCode) {
+              case 13:
+                ev.preventDefault();
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-return', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
               case 37:
                 this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-left', {
                   bubbles: true,
@@ -195,7 +202,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 }));
                 return;
             }
-          }
         }
       }
 

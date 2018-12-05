@@ -97,50 +97,46 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               cell.setAttribute('col', c.path);
               cell.setAttribute('row', rowData.index + 1);
               cell.setAttribute('value', rowData.item[c.path]);
+
               cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
-                if (ev.detail.row - 1 > 0) {
-                  const cellToSelect = Polymer.dom(this.root).querySelector(
-                    `incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) - 1}"]`
-                  );
-                  cellToSelect.focus();
-                }
+                this._focusCell(ev.detail.col, ev.detail.row - 1);
               });
+
               cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
-                if (parseInt(ev.detail.row) + 1 <= this.$.spreadsheet.items.length) {
-                  const cellToSelect = Polymer.dom(this.root).querySelector(
-                    `incubator-spreadsheet-cell[col="${ev.detail.col}"][row="${parseInt(ev.detail.row) + 1}"]`
-                  );
-                  cellToSelect.focus();
-                }
+                this._focusCell(ev.detail.col, ev.detail.row + 1);
               });
+
               cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
                 const colIndex = this._referenceSequence.findIndex((item) => {
                   return item.field === ev.detail.col;
                 });
-                if (colIndex - 1 >= 0) {
-                  const cellToSelect = Polymer.dom(this.root).querySelector(
-                    `incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex - 1].field}"][row="${ev.detail.row}"]`
-                  );
-                  cellToSelect.focus();
+
+                if (colIndex > 0) {
+                  this._focusCell(this._referenceSequence[colIndex - 1].field, ev.detail.row);
                 }
               });
+
               cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
                 const colIndex = this._referenceSequence.findIndex((item) => {
                   return item.field === ev.detail.col;
                 });
+
                 if (colIndex + 1 < this._referenceSequence.length) {
-                  const cellToSelect = Polymer.dom(this.root).querySelector(
-                    `incubator-spreadsheet-cell[col="${this._referenceSequence[colIndex + 1].field}"][row="${ev.detail.row}"]`
-                  );
-                  cellToSelect.focus();
+                  this._focusCell(this._referenceSequence[colIndex + 1].field, ev.detail.row);
                 }
               });
+
+              cell.addEventListener('incubator-spreadsheet-cell-key-return', (ev) => {
+                this._focusCell(ev.detail.col, ev.detail.row + 1);
+              });
+
               cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
                 this.set('_selectedCell', {
                   col: ev.detail.col,
                   row: ev.detail.row
                 });
               });
+
               cell.addEventListener('incubator-spreadsheet-cell-paste', (ev) => {
                 this._pasteFromClipboard();
               })
@@ -176,6 +172,16 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           document.addEventListener('keyup', (e) => {
             if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = false;
           });
+        }
+
+        _focusCell(col, row) {
+          const cellToSelect = Polymer.dom(this.root).querySelector(
+            `incubator-spreadsheet-cell[col="${col}"][row="${row}"]`
+          );
+
+          if (cellToSelect) {
+            cellToSelect.focus();
+          }
         }
 
         _pasteFromClipboard() {
