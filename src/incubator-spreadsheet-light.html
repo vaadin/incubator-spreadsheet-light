@@ -153,25 +153,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           indexCol.renderer = (root, column, rowData) => {
             root.textContent = rowData.index + 1;
           }
-
-          // https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
-          let ctrlDown = false;
-          const ctrlKey = 17,
-            cmdKey = 91,
-            vKey = 86;
-
-          document.addEventListener('keydown', (e) => {
-            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) {
-              ctrlDown = true;
-            }
-
-            if (ctrlDown && (e.keyCode == vKey)) {
-              this._pasteFromClipboard();
-            };
-          });
-          document.addEventListener('keyup', (e) => {
-            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = false;
-          });
         }
 
         _focusCell(col, row) {
