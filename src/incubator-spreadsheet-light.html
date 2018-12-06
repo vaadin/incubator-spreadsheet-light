@@ -186,6 +186,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               const colIndex = this._referenceSequence.findIndex((item) => {
                 return item.field === this._selectedCell.col;
               });
+              let cellToFocus = '';
 
               const newData = this._getEmptySpreadsheetData(rowsToDisplay, this._spreadsheetData);
               lines.forEach((line, lineIndex) => {
@@ -194,12 +195,11 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                   const _targetRow = this._selectedCell.row + lineIndex,
                     _targetCell = this._columns[cellIndex + colIndex].field;
                   newData[_targetRow][_targetCell] = cell;
-                  //this.$.spreadsheet._scrollToIndex(_targetRow);
-                  //this._focusCell(_targetRow, _targetCell);
                 });
               });
 
               this.set('_spreadsheetData', newData);
+              this._focusCell(this._selectedCell.row, this._selectedCell.col);
             })
             .catch(err => {
               console.error('Failed to read clipboard contents: ', err);
