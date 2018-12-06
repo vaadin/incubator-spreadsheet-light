@@ -53,12 +53,12 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
             _referenceSequence: {
               type: Array,
-              computed: '_generateReferenceSequence(10)'
+              computed: '_generateReferenceSequence(26)'
             },
 
             _minimumRowsToDisplay: {
               type: Number,
-              value: 10
+              value: 5
             },
 
             _selectedCell: {
@@ -93,59 +93,13 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column[id^="col-"]');
           columns.forEach(c => {
             c.renderer = (root, column, rowData) => {
-              const cell = document.createElement('incubator-spreadsheet-cell');
-              cell.setAttribute('col', c.path);
-              cell.setAttribute('row', rowData.index + 1);
-              cell.setAttribute('value', rowData.item[c.path]);
-
-              cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
-                this._focusCell(ev.detail.col, ev.detail.row - 1);
-              });
-
-              cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
-                this._focusCell(ev.detail.col, ev.detail.row + 1);
-              });
-
-              cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
-                const colIndex = this._referenceSequence.findIndex((item) => {
-                  return item.field === ev.detail.col;
-                });
-
-                if (colIndex > 0) {
-                  this._focusCell(this._referenceSequence[colIndex - 1].field, ev.detail.row);
-                }
-              });
-
-              cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
-                const colIndex = this._referenceSequence.findIndex((item) => {
-                  return item.field === ev.detail.col;
-                });
-
-                if (colIndex + 1 < this._referenceSequence.length) {
-                  this._focusCell(this._referenceSequence[colIndex + 1].field, ev.detail.row);
-                }
-              });
-
-              cell.addEventListener('incubator-spreadsheet-cell-key-return', (ev) => {
-                this._focusCell(ev.detail.col, ev.detail.row + 1);
-              });
-
-              cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
-                this.set('_selectedCell', {
-                  col: ev.detail.col,
-                  row: ev.detail.row
-                });
-              });
-
-              cell.addEventListener('incubator-spreadsheet-cell-paste', (ev) => {
-                this._pasteFromClipboard();
-              })
-
-              while (root.firstChild) {
-                root.removeChild(root.firstChild);
+              if (root.firstElementChild) {
+                const cell = root.firstElementChild;
+                cell.value = rowData.item[c.path];
+              } else {
+                const newCell = this._createCell(c.path, rowData.index + 1, rowData.item[c.path]);
+                root.append(newCell);
               }
-
-              root.append(cell);
             }
           });
 
@@ -153,6 +107,62 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           indexCol.renderer = (root, column, rowData) => {
             root.textContent = rowData.index + 1;
           }
+        }
+
+        _createCell(colPath, rowIndex, initialValue = '') {
+          const cell = document.createElement('incubator-spreadsheet-cell');
+          cell.setAttribute('col', colPath);
+          cell.setAttribute('row', rowIndex);
+          cell.setAttribute('value', initialValue);
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
+            this._focusCell(ev.detail.col, ev.detail.row - 1);
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
+            this._focusCell(ev.detail.col, ev.detail.row + 1);
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
+            const colIndex = this._referenceSequence.findIndex((item) => {
+              return item.field === ev.detail.col;
+            });
+
+            if (colIndex > 0) {
+              this._focusCell(this._referenceSequence[colIndex - 1].field, ev.detail.row);
+            }
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
+            const colIndex = this._referenceSequence.findIndex((item) => {
+              return item.field === ev.detail.col;
+            });
+
+            if (colIndex + 1 < this._referenceSequence.length) {
+              this._focusCell(this._referenceSequence[colIndex + 1].field, ev.detail.row);
+            }
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-return', (ev) => {
+            if (ev.detail.row + 1 > this._spreadsheetData.length) {
+              this.push('_spreadsheetData', this._getEmptyRow());
+            }
+
+            this._focusCell(ev.detail.col, ev.detail.row + 1);
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
+            this.set('_selectedCell', {
+              col: ev.detail.col,
+              row: ev.detail.row
+            });
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-paste', (ev) => {
+            this._pasteFromClipboard();
+          });
+
+          return cell;
         }
 
         _focusCell(col, row) {
@@ -170,7 +180,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           navigator.clipboard.readText()
             .then(text => {
               const lines = text.split('\n');
-              const requiredLines = parseInt(this._selectedCell.row) + lines.length;
+              const requiredLines = this._selectedCell.row + lines.length;
               const rowsToDisplay = this._minimumRowsToDisplay > requiredLines ? this._minimumRowsToDisplay :
                 requiredLines;
               const colIndex = this._referenceSequence.findIndex((item) => {
@@ -181,8 +191,11 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               lines.forEach((line, lineIndex) => {
                 const cells = line.split('\t');
                 cells.forEach((cell, cellIndex) => {
-                  newData[parseInt(this._selectedCell.row) + lineIndex - 1][this._columns[cellIndex +
-                    colIndex].field] = cell;
+                  const _targetRow = this._selectedCell.row + lineIndex - 1,
+                    _targetCell = this._columns[cellIndex + colIndex].field;
+                  newData[_targetRow][_targetCell] = cell;
+                  //this.$.spreadsheet._scrollToIndex(_targetRow);
+                  //this._focusCell(_targetRow, _targetCell);
                 });
               });
 
@@ -235,11 +248,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           }
 
           return referenceSequence;
-        }
-
-        _cellSelected(e) {
-          debugger
-          console.log(e);
         }
       }
 

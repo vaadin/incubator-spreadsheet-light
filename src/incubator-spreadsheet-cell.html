@@ -135,6 +135,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             // Control key code: 17
             // Cmd key code: 91
             // V key: 86
+            // Enter: 13
             switch (ev.keyCode) {
               case 13:
                 ev.preventDefault();
@@ -192,6 +193,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 this._ctrlDown = true;
                 return;
               case 86:
+                ev.preventDefault();
                 this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-paste', {
                   bubbles: true,
                   composed: true,
