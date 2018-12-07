@@ -58,7 +58,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
             _minimumRowsToDisplay: {
               type: Number,
-              value: 5
+              value: 100
             },
 
             _selectedCell: {
@@ -84,26 +84,23 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // Assign the variable holding the columns of the grid.
           this._columns = [...this._referenceSequence];
 
-          // Grid should be rendered.
-          this._shouldRender = true;
-
           this.set('_spreadsheetData', this._getEmptySpreadsheetData(this._minimumRowsToDisplay));
 
-          // This should be done with no dependencies to Polymer
-          const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column[id^="col-"]');
+          const columns = this.shadowRoot.querySelectorAll('vaadin-grid-column[id^="col-"]');
           columns.forEach(c => {
             c.renderer = (root, column, rowData) => {
-              if (root.firstElementChild) {
-                const cell = root.firstElementChild;
-                cell.value = rowData.item[c.path];
-              } else {
+              if (!root.firstElementChild) {
                 const newCell = this._createCell(c.path, rowData.index, rowData.item[c.path]);
                 root.append(newCell);
               }
+
+              const cell = root.firstElementChild;
+              cell.value = rowData.item[c.path];
+              cell.row = rowData.index;
             }
           });
 
-          const indexCol = Polymer.dom(this.root).querySelector('vaadin-grid-column#indexColumn');
+          const indexCol = this.shadowRoot.querySelector('vaadin-grid-column#indexColumn');
           indexCol.renderer = (root, column, rowData) => {
             root.textContent = rowData.index + 1;
           }
@@ -166,7 +163,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         _focusCell(col, row) {
-          const cellToSelect = Polymer.dom(this.root).querySelector(
+          const cellToSelect = this.shadowRoot.querySelector(
             `incubator-spreadsheet-cell[col="${col}"][row="${row}"]`
           );
 
@@ -227,9 +224,9 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // TODO: Make this more suffisticated.
           for (var i = 0, l = rows; i < l; i++) {
             if (initialValue[i] !== undefined) {
-              data.push(Object.assign({}, initialValue[i]));
+              data.push(Object.assign({_row: i}, initialValue[i]));
             } else {
-              data.push(Object.assign({}, datum));
+              data.push(Object.assign({_row: i}, datum));
             }
           }
 
