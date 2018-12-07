@@ -10,19 +10,18 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 <link rel="import" href="../../vaadin-themable-mixin/vaadin-themable-mixin.html">
 <link rel="import" href="../../vaadin-element-mixin/vaadin-element-mixin.html">
 <link rel="import" href="../../vaadin-grid/vaadin-grid.html">
-<link rel="import" href="../../vaadin-text-field/vaadin-text-field.html">
+
+<link rel="import" href="incubator-spreadsheet-cell.html">
 
 <dom-module id="incubator-spreadsheet-light">
   <template>
     <style>
-      vaadin-text-field {
-        width: 100%;
-      }
     </style>
 
     <vaadin-grid id="spreadsheet" items="{{_spreadsheetData}}">
+      <vaadin-grid-column width="60px" flex-grow="0" text-align="center" id="indexColumn"></vaadin-grid-column>
       <template is="dom-repeat" items="{{_columns}}" as="col">
-        <vaadin-grid-column header="[[col.title]]" path="[[col.field]]"></vaadin-grid-column>
+        <vaadin-grid-column id="[[col.colId]]" header="[[col.title]]" path="[[col.field]]"></vaadin-grid-column>
       </template>
     </vaadin-grid>
   </template>
@@ -54,20 +53,25 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
             _referenceSequence: {
               type: Array,
-              computed: '_generateReferenceSequence(10)'
+              computed: '_generateReferenceSequence(26)'
             },
 
             _minimumRowsToDisplay: {
               type: Number,
-              value: 10
+              value: 100
+            },
+
+            _selectedCell: {
+              type: Object,
+              // TODO: This should be done more sensibly.
+              value: {
+                col: 'a',
+                row: 1
+              }
             }
           };
         }
 
-        /**
-         * Array of strings describing multi-property observer methods and their
-         * dependant properties
-         */
         static get observers() {
           return [
             '_spreadsheetDataChanged(_spreadsheetData)'
@@ -82,47 +86,121 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
           this.set('_spreadsheetData', this._getEmptySpreadsheetData(this._minimumRowsToDisplay));
 
-          // This should be done with no dependencies to Polymer
-          const columns = Polymer.dom(this.root).querySelectorAll('vaadin-grid-column');
+          const columns = this.shadowRoot.querySelectorAll('vaadin-grid-column[id^="col-"]');
           columns.forEach(c => {
             c.renderer = (root, column, rowData) => {
-              root.innerHTML = `<vaadin-text-field value="${rowData.item[c.path]}"></vaadin-text-field>`
+              if (!root.firstElementChild) {
+                const newCell = this._createCell(c.path, rowData.index, rowData.item[c.path]);
+                root.append(newCell);
+              }
+
+              const cell = root.firstElementChild;
+              cell.value = rowData.item[c.path];
+              cell.row = rowData.index;
             }
           });
 
-          // https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
-          let ctrlDown = false;
-          const ctrlKey = 17,
-                cmdKey = 91,
-                vKey = 86,
-                cKey = 67;
+          const indexCol = this.shadowRoot.querySelector('vaadin-grid-column#indexColumn');
+          indexCol.renderer = (root, column, rowData) => {
+            root.textContent = rowData.index + 1;
+          }
+        }
 
+        _createCell(colPath, rowIndex, initialValue = '') {
+          const cell = document.createElement('incubator-spreadsheet-cell');
+          cell.setAttribute('col', colPath);
+          cell.setAttribute('row', rowIndex);
+          cell.setAttribute('value', initialValue);
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
+            this._focusCell(ev.detail.col, ev.detail.row - 1);
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
+            this._focusCell(ev.detail.col, ev.detail.row + 1);
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
+            const colIndex = this._referenceSequence.findIndex((item) => {
+              return item.field === ev.detail.col;
+            });
+
+            if (colIndex > 0) {
+              this._focusCell(this._referenceSequence[colIndex - 1].field, ev.detail.row);
+            }
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
+            const colIndex = this._referenceSequence.findIndex((item) => {
+              return item.field === ev.detail.col;
+            });
+
+            if (colIndex + 1 < this._referenceSequence.length) {
+              this._focusCell(this._referenceSequence[colIndex + 1].field, ev.detail.row);
+            }
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-key-return', (ev) => {
+            if (ev.detail.row === this._spreadsheetData.length - 1) {
+              this.push('_spreadsheetData', this._getEmptyRow());
+            } else {
+              this._focusCell(ev.detail.col, ev.detail.row + 1);
+            }
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
+            this.set('_selectedCell', {
+              col: ev.detail.col,
+              row: ev.detail.row
+            });
+          });
+
+          cell.addEventListener('incubator-spreadsheet-cell-paste', (ev) => {
+            this._pasteFromClipboard();
+          });
+
+          return cell;
+        }
+
+        _focusCell(col, row) {
+          const cellToSelect = this.shadowRoot.querySelector(
+            `incubator-spreadsheet-cell[col="${col}"][row="${row}"]`
+          );
+
+          if (cellToSelect) {
+            cellToSelect.focus();
+          }
+        }
+
+        _pasteFromClipboard() {
           // https://stackoverflow.com/questions/6413036/get-current-clipboard-content
-          document.addEventListener('keydown', (e) => {
-            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = true;
+          navigator.clipboard.readText()
+            .then(text => {
+              const lines = text.split('\n');
+              const requiredLines = this._selectedCell.row + lines.length;
+              const rowsToDisplay = this._spreadsheetData.length > requiredLines ? this._spreadsheetData.length :
+                requiredLines;
+              const colIndex = this._referenceSequence.findIndex((item) => {
+                return item.field === this._selectedCell.col;
+              });
+              let cellToFocus = '';
 
-            if (ctrlDown && (e.keyCode == vKey || e.keyCode == cKey)) {
-              navigator.clipboard.readText()
-                .then(text => {
-                  const newData = this._getEmptySpreadsheetData(this._minimumRowsToDisplay);
-                  const lines = text.split('\n');
-                  lines.forEach((line, lineIndex) => {
-                    const cells = line.split('\t');
-                    cells.forEach((cell, cellIndex) => {
-                      newData[lineIndex][this._columns[cellIndex].field] = cell;
-                    });
-                  });
-
-                  this.set('_spreadsheetData', newData);
-                })
-                .catch(err => {
-                  console.error('Failed to read clipboard contents: ', err);
+              const newData = this._getEmptySpreadsheetData(rowsToDisplay, this._spreadsheetData);
+              lines.forEach((line, lineIndex) => {
+                const cells = line.split('\t');
+                cells.forEach((cell, cellIndex) => {
+                  const _targetRow = this._selectedCell.row + lineIndex,
+                    _targetCell = this._columns[cellIndex + colIndex].field;
+                  newData[_targetRow][_targetCell] = cell;
                 });
-            };
-          });
-          document.addEventListener('keyup', (e) => {
-            if (e.keyCode == ctrlKey || e.keyCode == cmdKey) ctrlDown = false;
-          });
+              });
+
+              this.set('_spreadsheetData', newData);
+              this._focusCell(this._selectedCell.row, this._selectedCell.col);
+            })
+            .catch(err => {
+              console.error('Failed to read clipboard contents: ', err);
+            });
         }
 
         _spreadsheetDataChanged(newVal, oldVal) {
@@ -139,12 +217,17 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           return _emptyRow;
         }
 
-        _getEmptySpreadsheetData(rows) {
-          const datum = this._getEmptyRow(), data = [];
+        _getEmptySpreadsheetData(rows, initialValue = []) {
+          const datum = this._getEmptyRow(),
+            data = [];
 
           // TODO: Make this more suffisticated.
           for (var i = 0, l = rows; i < l; i++) {
-            data.push(Object.assign({}, datum));
+            if (initialValue[i] !== undefined) {
+              data.push(Object.assign({_row: i}, initialValue[i]));
+            } else {
+              data.push(Object.assign({_row: i}, datum));
+            }
           }
 
           return data;
@@ -156,7 +239,8 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           for (var i = 65, l = i + count; i < l; i++) {
             referenceSequence.push({
               title: String.fromCharCode(i),
-              field: String.fromCharCode(i).toLowerCase()
+              field: String.fromCharCode(i).toLowerCase(),
+              colId: `col-${String.fromCharCode(i).toLowerCase()}`
             });
           }
 

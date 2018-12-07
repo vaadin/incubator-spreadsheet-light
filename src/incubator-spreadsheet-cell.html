@@ -1,0 +1,237 @@
+<!--
+@license
+Copyright (c) 2018 Vaadin Ltd.
+This program is available under Commercial Vaadin Add-On License 3.0 (CVALv3).
+
+See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete license.
+-->
+
+<link rel="import" href="../../polymer/polymer-element.html">
+<link rel="import" href="../../vaadin-themable-mixin/vaadin-themable-mixin.html">
+<link rel="import" href="../../vaadin-element-mixin/vaadin-element-mixin.html">
+
+<dom-module id="incubator-spreadsheet-cell">
+  <template>
+    <style>
+      :host {
+        display: block;
+        overflow: hidden;
+
+        height: 100%;
+        width: 100%;
+      }
+
+      #label {
+        box-sizing: border-box;
+        min-height: 1em;
+        height: 100%;
+        width: 100%;
+      }
+
+      #label[contenteditable] {
+        border: #fafafa 1px solid;
+      }
+    </style>
+
+    <div id="label" contenteditable>[[value]]</div>
+  </template>
+  <script>
+    (function () {
+      /**
+       * `<incubator-spreadsheet-cell>` is a template for incubator components.
+       *
+       * ```
+       * <incubator-spreadsheet-cell>
+       * </incubator-spreadsheet-cell>
+       * ```
+       *
+       * @memberof Vaadin
+       * @demo demo/index.html
+       */
+      class IncubatorSpreadsheetCell extends Vaadin.ElementMixin(Vaadin.ThemableMixin(Polymer.Element)) {
+        static get is() {
+          return 'incubator-spreadsheet-cell';
+        }
+
+        /**
+         * Use for one-time configuration of your component after local DOM is
+         * initialized.
+         */
+        ready() {
+          super.ready();
+
+          this._boundCellSelected = this._cellSelected.bind(this);
+          this._boundCellBlurred = this._cellBlurred.bind(this);
+          this._boundLabelKeyDown = this._labelKeyDown.bind(this);
+          this._boundLabelKeyUp = this._labelKeyUp.bind(this);
+          this._ctrlDown = false;
+        }
+
+        connectedCallback() {
+          super.connectedCallback();
+
+          this.$.label.addEventListener('keydown', this._boundLabelKeyDown);
+          this.$.label.addEventListener('keyup', this._boundLabelKeyUp);
+          this.$.label.addEventListener('focus', this._boundCellSelected);
+          this.$.label.addEventListener('blur', this._boundCellBlurred);
+        }
+
+        disconnectedCallback() {
+          super.disconnectedCallback();
+
+          this.$.label.removeEventListener('keydown', this._boundLabelKeyDown);
+          this.$.label.removeEventListener('keyup', this._boundLabelKeyUp);
+          this.$.label.removeEventListener('focus', this._boundCellSelected);
+          this.$.label.removeEventListener('blur', this._boundCellBlurred);
+        }
+
+        static get properties() {
+          return {
+            value: {
+              type: String,
+              value: ''
+            },
+
+            editMode: {
+              type: Boolean,
+              value: false,
+              reflectToAttribute: true
+            },
+
+            col: {
+              type: String
+            },
+
+            row: {
+              type: Number,
+              reflectToAttribute: true
+            }
+          };
+        }
+
+        focus() {
+          this.$.label.focus();
+        }
+
+        _cellSelected() {
+          this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-selected', {
+            bubbles: true,
+            composed: true,
+            detail: {
+              col: this.col,
+              row: this.row
+            }
+          }));
+        }
+
+        _cellBlurred() {
+          this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-blurred', {
+            bubbles: true,
+            composed: true,
+            detail: {
+              col: this.col,
+              row: this.row
+            }
+          }));
+        }
+
+        _labelKeyUp(ev) {
+          // Control key code: 17
+          // Cmd key code: 91
+          switch (ev.keyCode) {
+            case 17:
+            case 91:
+              this._ctrlDown = false;
+          }
+        }
+
+        _labelKeyDown(ev) {
+            // Arrow keys codes: LURD 37, 38, 39 40
+            // Control key code: 17
+            // Cmd key code: 91
+            // V key: 86
+            // Enter: 13
+            switch (ev.keyCode) {
+              case 13:
+                ev.preventDefault();
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-return', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
+              case 37:
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-left', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
+              case 38:
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-up', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
+              case 39:
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-right', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
+              case 40:
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-down', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
+              case 17:
+              case 91:
+                this._ctrlDown = true;
+                return;
+              case 86:
+                ev.preventDefault();
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-paste', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row
+                  }
+                }));
+                return;
+            }
+        }
+      }
+
+      customElements.define(IncubatorSpreadsheetCell.is, IncubatorSpreadsheetCell);
+
+      /**
+       * @namespace Vaadin
+       */
+      window.Vaadin.IncubatorSpreadsheetCell = IncubatorSpreadsheetCell;
+
+      if (window.Vaadin.runIfDevelopmentMode) {
+        window.Vaadin.runIfDevelopmentMode('vaadin-license-checker', IncubatorSpreadsheetCell);
+      }
+    })();
+  </script>
+</dom-module>
