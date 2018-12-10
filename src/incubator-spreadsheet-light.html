@@ -183,7 +183,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               const requiredLines = this._selectedCell.row + lines.length;
               const rowsToDisplay = this._spreadsheetData.length > requiredLines ? this._spreadsheetData.length :
                 requiredLines;
-              const colIndex = this._referenceSequence.findIndex((item) => {
+              const colOffset = this._referenceSequence.findIndex((item) => {
                 return item.field === this._selectedCell.col;
               });
               let cellToFocus = '';
@@ -193,7 +193,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 const cells = line.split('\t');
                 cells.forEach((cell, cellIndex) => {
                   const _targetRow = this._selectedCell.row + lineIndex,
-                    _targetCell = this._referenceSequence[cellIndex + colIndex].field;
+                    _targetCell = this._referenceSequence[cellIndex + colOffset].field;
                   newData[_targetRow][_targetCell] = cell;
                 });
               });
@@ -227,9 +227,9 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // TODO: Make this more sophisticated.
           for (var i = 0, l = rows; i < l; i++) {
             if (initialValue[i] !== undefined) {
-              data.push(Object.assign(initialValue[i]));
+              data.push(Object.assign({}, initialValue[i]));
             } else {
-              data.push(Object.assign(datum));
+              data.push(Object.assign({}, datum));
             }
           }
 
@@ -251,13 +251,13 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         _generateReferenceSequence(count) {
           const referenceSequence = [];
           for (var i = 0, l = count; i < l; i++) {
+            const colTitle = this._getColTitle(i);
             referenceSequence.push({
-              title: this._getColTitle(i),
-              field: this._getColTitle(i).toLowerCase(),
-              colId: `col-${this._getColTitle(i + 1).toLowerCase()}`
+              title: colTitle,
+              field: colTitle.toLowerCase(),
+              colId: `col-${colTitle.toLowerCase()}`
             });
           }
-
           return referenceSequence;
         }
       }
