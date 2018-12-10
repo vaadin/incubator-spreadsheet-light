@@ -46,6 +46,12 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         static get properties() {
           return {
+            cellCount: {
+              type: Number,
+              value: 26,
+              reflectToAttribute: true
+            },
+
             _spreadsheetData: {
               type: Array,
               value: []
@@ -53,7 +59,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
             _referenceSequence: {
               type: Array,
-              computed: '_generateReferenceSequence(26)'
+              computed: '_generateReferenceSequence(cellCount)'
             },
 
             _minimumRowsToDisplay: {
@@ -177,7 +183,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               const requiredLines = this._selectedCell.row + lines.length;
               const rowsToDisplay = this._spreadsheetData.length > requiredLines ? this._spreadsheetData.length :
                 requiredLines;
-              const colIndex = this._referenceSequence.findIndex((item) => {
+              const colOffset = this._referenceSequence.findIndex((item) => {
                 return item.field === this._selectedCell.col;
               });
               let cellToFocus = '';
@@ -187,7 +193,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 const cells = line.split('\t');
                 cells.forEach((cell, cellIndex) => {
                   const _targetRow = this._selectedCell.row + lineIndex,
-                    _targetCell = this._referenceSequence[cellIndex + colIndex].field;
+                    _targetCell = this._referenceSequence[cellIndex + colOffset].field;
                   newData[_targetRow][_targetCell] = cell;
                 });
               });
@@ -221,27 +227,37 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // TODO: Make this more sophisticated.
           for (var i = 0, l = rows; i < l; i++) {
             if (initialValue[i] !== undefined) {
-              data.push(Object.assign(initialValue[i]));
+              data.push(Object.assign({}, initialValue[i]));
             } else {
-              data.push(Object.assign(datum));
+              data.push(Object.assign({}, datum));
             }
           }
 
           return data;
         }
 
+        _getColTitle(colNumber) {
+          const diff = 'Z'.charCodeAt(0) - 'A'.charCodeAt(0), startCode = 'A'.charCodeAt(0);
+          const alpha = Math.floor(colNumber / (diff + 1));
+
+          if (alpha === 0) {
+            return String.fromCharCode(colNumber + startCode);
+          } else {
+            const remainder = colNumber % (diff + 1);
+            return `${this._getColTitle(alpha - 1)}${String.fromCharCode(remainder + startCode)}`;
+          }
+        }
+
         _generateReferenceSequence(count) {
-          // Generate english alphabet from A to Z.
-          const diff = 'Z'.charCodeAt(0) - 'A'.charCodeAt(0);
           const referenceSequence = [];
-          for (var i = 65, l = i + count; i < l; i++) {
+          for (var i = 0, l = count; i < l; i++) {
+            const colTitle = this._getColTitle(i);
             referenceSequence.push({
-              title: String.fromCharCode(i),
-              field: String.fromCharCode(i).toLowerCase(),
-              colId: `col-${String.fromCharCode(i).toLowerCase()}`
+              title: colTitle,
+              field: colTitle.toLowerCase(),
+              colId: `col-${colTitle.toLowerCase()}`
             });
           }
-
           return referenceSequence;
         }
       }
