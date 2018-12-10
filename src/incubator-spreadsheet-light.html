@@ -146,9 +146,9 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           cell.addEventListener('incubator-spreadsheet-cell-key-return', (ev) => {
             if (ev.detail.row === this._spreadsheetData.length - 1) {
               this.push('_spreadsheetData', this._getEmptyRow());
-            } else {
-              this._focusCell(ev.detail.col, ev.detail.row + 1);
             }
+
+            this._focusCell(ev.detail.col, ev.detail.row + 1);
           });
 
           cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
@@ -186,7 +186,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               const colOffset = this._referenceSequence.findIndex((item) => {
                 return item.field === this._selectedCell.col;
               });
-              let cellToFocus = '';
 
               const newData = this._getEmptySpreadsheetData(rowsToDisplay, this._spreadsheetData);
               lines.forEach((line, lineIndex) => {
