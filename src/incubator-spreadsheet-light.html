@@ -46,6 +46,12 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         static get properties() {
           return {
+            cellCount: {
+              type: Number,
+              value: 26,
+              reflectToAttribute: true
+            },
+
             _spreadsheetData: {
               type: Array,
               value: []
@@ -53,7 +59,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
             _referenceSequence: {
               type: Array,
-              computed: '_generateReferenceSequence(26)'
+              computed: '_generateReferenceSequence(cellCount)'
             },
 
             _minimumRowsToDisplay: {
@@ -230,15 +236,25 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           return data;
         }
 
+        _getColTitle(colNumber) {
+          const diff = 'Z'.charCodeAt(0) - 'A'.charCodeAt(0), startCode = 'A'.charCodeAt(0);
+          const alpha = Math.floor(colNumber / (diff + 1));
+
+          if (alpha === 0) {
+            return String.fromCharCode(colNumber + startCode);
+          } else {
+            const remainder = colNumber % (diff + 1);
+            return `${this._getColTitle(alpha - 1)}${String.fromCharCode(remainder + startCode)}`;
+          }
+        }
+
         _generateReferenceSequence(count) {
-          // Generate english alphabet from A to Z.
-          const diff = 'Z'.charCodeAt(0) - 'A'.charCodeAt(0);
           const referenceSequence = [];
-          for (var i = 65, l = i + count; i < l; i++) {
+          for (var i = 0, l = count; i < l; i++) {
             referenceSequence.push({
-              title: String.fromCharCode(i),
-              field: String.fromCharCode(i).toLowerCase(),
-              colId: `col-${String.fromCharCode(i).toLowerCase()}`
+              title: this._getColTitle(i),
+              field: this._getColTitle(i).toLowerCase(),
+              colId: `col-${this._getColTitle(i + 1).toLowerCase()}`
             });
           }
 
