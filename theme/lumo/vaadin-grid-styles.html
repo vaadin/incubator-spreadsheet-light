@@ -6,7 +6,8 @@
   <template>
     <style>
       thead [part="row"] th,
-      thead [part="row"] td {
+      thead [part="row"] td,
+      tbody [part="row"] td {
         min-height: auto !important;
         height: var(--lumo-size-xs) !important;
       }
@@ -19,21 +20,11 @@
       [part="row"] td[first-column] {
         background-color: #fafafa;
         border-right: var(--_lumo-grid-secondary-border-color) 1px solid;
+        padding: auto;
       }
 
-      [part="cell cell-body"] {
-        padding: 0;
-      }
-    </style>
-  </template>
-</dom-module>
-
-<dom-module id="lumo-incubator-spreadsheet-light-grid-cell" theme-for="vaadin-grid-cell-content">
-  <template>
-    <style>
-      :host {
-        padding: 0;
-        width: 100%;
+      [part~="body-cell"] ::slotted(vaadin-grid-cell-content) {
+        padding: 0!important;
         height: 100%;
       }
     </style>
