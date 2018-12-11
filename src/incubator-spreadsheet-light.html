@@ -134,7 +134,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         _getCell(row, col) {
           return this.shadowRoot.querySelector(
-            `incubator-spreadsheet-cell[col="${col}"][row="${row}"]`
+            `incubator-spreadsheet-cell[col="${col.toLowerCase()}"][row="${row}"]`
           );
         }
 
