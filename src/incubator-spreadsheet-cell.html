@@ -113,12 +113,37 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             row: {
               type: Number,
               reflectToAttribute: true
+            },
+
+            backgroundColor: {
+              type: String,
+              reflectToAttribute: true
+            },
+
+            textColor: {
+              type: String,
+              reflectToAttribute: true
             }
           };
         }
 
+        /**
+          * Array of strings describing multi-property observer methods and their
+          * dependant properties
+          */
+        static get observers() {
+          return [
+            '_styleChanged(backgroundColor, textColor)'
+          ];
+        }
+
         focus() {
           this.$.label.focus();
+        }
+
+        _styleChanged(backgroundColor, textColor) {
+          this.$.label.style.color = textColor;
+          this.style.backgroundColor = backgroundColor;
         }
 
         _cellSelected() {

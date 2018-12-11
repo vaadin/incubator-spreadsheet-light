@@ -109,6 +109,28 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           }
         }
 
+        setCellTextColor(row, col, color) {
+          const targetCell = _getCell(row, col);
+
+          if (targetCell) {
+            targetCell.textColor = color;
+          }
+        }
+
+        setCellBackgroundColor(row, col, color) {
+          const targetCell = _getCell(row, col);
+
+          if (targetCell) {
+            targetCell.backgroundColor = color;
+          }
+        }
+
+        _getCell(row, col) {
+          return this.shadowRoot.querySelector(
+            `incubator-spreadsheet-cell[col="${col}"][row="${row}"]`
+          );
+        }
+
         _createCell(colPath, rowIndex, initialValue = '') {
           const cell = document.createElement('incubator-spreadsheet-cell');
           cell.setAttribute('col', colPath);
@@ -166,12 +188,10 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         _focusCell(col, row) {
-          const cellToSelect = this.shadowRoot.querySelector(
-            `incubator-spreadsheet-cell[col="${col}"][row="${row}"]`
-          );
+          const targetCell = _getCell(row, col);
 
-          if (cellToSelect) {
-            cellToSelect.focus();
+          if (targetCell) {
+            targetCell.focus();
           }
         }
 
