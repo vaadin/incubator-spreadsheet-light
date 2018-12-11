@@ -15,9 +15,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
 <dom-module id="incubator-spreadsheet-light">
   <template>
-    <style>
-    </style>
-
     <vaadin-grid id="spreadsheet" items="{{_spreadsheetData}}">
       <vaadin-grid-column width="60px" flex-grow="0" text-align="center" id="indexColumn"></vaadin-grid-column>
       <template is="dom-repeat" items="{{_referenceSequence}}" as="col">
@@ -46,9 +43,14 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         static get properties() {
           return {
-            cellCount: {
+            colCount: {
               type: Number,
               value: 26,
+              reflectToAttribute: true
+            },
+
+            height: {
+              type: String,
               reflectToAttribute: true
             },
 
@@ -59,7 +61,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
             _referenceSequence: {
               type: Array,
-              computed: '_generateReferenceSequence(cellCount)'
+              computed: '_generateReferenceSequence(colCount)'
             },
 
             _minimumRowsToDisplay: {
@@ -75,7 +77,8 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         static get observers() {
           return [
-            '_spreadsheetDataChanged(_spreadsheetData)'
+            '_spreadsheetDataChanged(_spreadsheetData)',
+            '_heightChanged(height)'
           ];
         }
 
@@ -123,6 +126,10 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           if (targetCell) {
             targetCell.backgroundColor = color;
           }
+        }
+
+        _heightChanged(height) {
+          this.$.spreadsheet.style.height = height;
         }
 
         _getCell(row, col) {
