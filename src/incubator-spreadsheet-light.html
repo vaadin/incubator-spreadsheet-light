@@ -21,7 +21,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
     <vaadin-grid id="spreadsheet" items="{{_spreadsheetData}}">
       <vaadin-grid-column width="60px" flex-grow="0" text-align="center" id="indexColumn"></vaadin-grid-column>
       <template is="dom-repeat" items="{{_referenceSequence}}" as="col">
-        <vaadin-grid-column id="[[col.colId]]" header="[[col.title]]" path="[[col.field]]"></vaadin-grid-column>
+        <vaadin-grid-column id="[[col.colId]]" header="[[col.title]]" path="[[col.field]]" resizable></vaadin-grid-column>
       </template>
     </vaadin-grid>
   </template>
