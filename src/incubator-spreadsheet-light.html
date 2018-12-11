@@ -110,7 +110,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         setCellTextColor(row, col, color) {
-          const targetCell = _getCell(row, col);
+          const targetCell = this._getCell(row, col);
 
           if (targetCell) {
             targetCell.textColor = color;
@@ -118,7 +118,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         setCellBackgroundColor(row, col, color) {
-          const targetCell = _getCell(row, col);
+          const targetCell = this._getCell(row, col);
 
           if (targetCell) {
             targetCell.backgroundColor = color;
@@ -188,7 +188,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         _focusCell(col, row) {
-          const targetCell = _getCell(row, col);
+          const targetCell = this._getCell(row, col);
 
           if (targetCell) {
             targetCell.focus();
