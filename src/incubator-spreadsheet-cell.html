@@ -160,6 +160,10 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         _cellBlurred() {
+          // TODO: This should be done in a better way.
+          const val = this.$.label.innerText;
+          this.set('value', val);
+          this.$.label.innerText = val;
           this.set('selected', false);
 
           this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-blurred', {
@@ -167,7 +171,8 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             composed: true,
             detail: {
               col: this.col,
-              row: this.row
+              row: this.row,
+              value: this.value
             }
           }));
         }
