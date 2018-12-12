@@ -111,6 +111,20 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           }
         }
 
+        hideColumn(col) {
+          const column = this.shadowRoot.querySelector(`#col-${col}`);
+          if (column) {
+            column.hidden = true;
+          }
+        }
+
+        showColumn(col) {
+          const column = this.shadowRoot.querySelector(`#col-${col}`);
+          if (column) {
+            column.hidden = false;
+          }
+        }
+
         exportCSV() {
           // https://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
           const exportData = this._spreadsheetData.reduce((prev, row) => {
@@ -171,9 +185,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           });
 
           cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
-            const colIndex = this._referenceSequence.findIndex((item) => {
-              return item.field === ev.detail.col;
-            });
+            const colIndex = this._getColumnIndex(ev.detail.col);
 
             if (colIndex > 0) {
               this._focusCell(this._referenceSequence[colIndex - 1].field, ev.detail.row);
@@ -181,9 +193,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           });
 
           cell.addEventListener('incubator-spreadsheet-cell-key-right', (ev) => {
-            const colIndex = this._referenceSequence.findIndex((item) => {
-              return item.field === ev.detail.col;
-            });
+            const colIndex = this._getColumnIndex(ev.detail.col);
 
             if (colIndex + 1 < this._referenceSequence.length) {
               this._focusCell(this._referenceSequence[colIndex + 1].field, ev.detail.row);
@@ -214,6 +224,12 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           });
 
           return cell;
+        }
+
+        _getColumnIndex(column) {
+          return this._referenceSequence.findIndex((item) => {
+              return item.field === column;
+            });
         }
 
         _focusCell(col, row) {
