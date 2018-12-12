@@ -77,7 +77,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         static get observers() {
           return [
-            '_spreadsheetDataChanged(_spreadsheetData)',
             '_heightChanged(height)'
           ];
         }
@@ -110,6 +109,25 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             col: this._referenceSequence[0].field,
             row: 0
           }
+        }
+
+        exportCSV() {
+          // https://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
+          const exportData = this._spreadsheetData.reduce((prev, row) => {
+            const line = Object.keys(row).map((k) => row[k]).join(',');
+            return `${prev}\n${line}`;
+          }, this._referenceSequence.map(c => c.field).join(','));
+
+          const element = document.createElement('a');
+          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(exportData));
+          element.setAttribute('download', `${Date.now()}-spreadsheet.csv`);
+
+          element.style.display = 'none';
+          this.shadowRoot.appendChild(element);
+
+          element.click();
+
+          this.shadowRoot.removeChild(element);
         }
 
         setCellTextColor(row, col, color) {
@@ -187,6 +205,10 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             });
           });
 
+          cell.addEventListener('incubator-spreadsheet-cell-blurred', (ev) => {
+            this._spreadsheetData[ev.detail.row][ev.detail.col] = ev.detail.value;
+          });
+
           cell.addEventListener('incubator-spreadsheet-cell-paste', (ev) => {
             this._pasteFromClipboard();
           });
@@ -230,10 +252,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             .catch(err => {
               console.error('Failed to read clipboard contents: ', err);
             });
-        }
-
-        _spreadsheetDataChanged(newVal, oldVal) {
-
         }
 
         _getEmptyRow() {
