@@ -123,14 +123,20 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             textColor: {
               type: String,
               reflectToAttribute: true
+            },
+
+            hasFormula: {
+              type: Boolean,
+              value: false,
+              reflectToAttribute: true
             }
           };
         }
 
         /**
-          * Array of strings describing multi-property observer methods and their
-          * dependant properties
-          */
+         * Array of strings describing multi-property observer methods and their
+         * dependant properties
+         */
         static get observers() {
           return [
             '_styleChanged(backgroundColor, textColor)'
@@ -149,6 +155,10 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         _cellSelected() {
           this.set('selected', true);
 
+          if (this.hasFormula) {
+            this.$.label.innerText = this.value;
+          }
+
           this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-selected', {
             bubbles: true,
             composed: true,
@@ -163,7 +173,13 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // TODO: This should be done in a better way.
           const val = this.$.label.innerText;
           this.set('value', val);
-          this.$.label.innerText = val;
+          if (val.startsWith('=')) {
+            this.$.label.innerText = '';
+            this.set('hasFormula', true);
+          } else {
+            this.$.label.innerText = val;
+            this.set('hasFormula', false);
+          }
           this.set('selected', false);
 
           this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-blurred', {
@@ -188,79 +204,79 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         }
 
         _labelKeyDown(ev) {
-            // Arrow keys codes: LURD 37, 38, 39 40
-            // Control key code: 17
-            // Cmd key code: 91
-            // V key: 86
-            // Enter: 13
-            switch (ev.keyCode) {
-              case 13:
-                ev.preventDefault();
-                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-return', {
-                  bubbles: true,
-                  composed: true,
-                  detail: {
-                    col: this.col,
-                    row: this.row
-                  }
-                }));
-                return;
-              case 37:
-                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-left', {
-                  bubbles: true,
-                  composed: true,
-                  detail: {
-                    col: this.col,
-                    row: this.row
-                  }
-                }));
-                return;
-              case 38:
-                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-up', {
-                  bubbles: true,
-                  composed: true,
-                  detail: {
-                    col: this.col,
-                    row: this.row
-                  }
-                }));
-                return;
-              case 39:
-                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-right', {
-                  bubbles: true,
-                  composed: true,
-                  detail: {
-                    col: this.col,
-                    row: this.row
-                  }
-                }));
-                return;
-              case 40:
-                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-down', {
-                  bubbles: true,
-                  composed: true,
-                  detail: {
-                    col: this.col,
-                    row: this.row
-                  }
-                }));
-                return;
-              case 17:
-              case 91:
-                this._ctrlDown = true;
-                return;
-              case 86:
-                ev.preventDefault();
-                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-paste', {
-                  bubbles: true,
-                  composed: true,
-                  detail: {
-                    col: this.col,
-                    row: this.row
-                  }
-                }));
-                return;
-            }
+          // Arrow keys codes: LURD 37, 38, 39 40
+          // Control key code: 17
+          // Cmd key code: 91
+          // V key: 86
+          // Enter: 13
+          switch (ev.keyCode) {
+            case 13:
+              ev.preventDefault();
+              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-return', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  col: this.col,
+                  row: this.row
+                }
+              }));
+              return;
+            case 37:
+              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-left', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  col: this.col,
+                  row: this.row
+                }
+              }));
+              return;
+            case 38:
+              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-up', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  col: this.col,
+                  row: this.row
+                }
+              }));
+              return;
+            case 39:
+              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-right', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  col: this.col,
+                  row: this.row
+                }
+              }));
+              return;
+            case 40:
+              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-down', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  col: this.col,
+                  row: this.row
+                }
+              }));
+              return;
+            case 17:
+            case 91:
+              this._ctrlDown = true;
+              return;
+            case 86:
+              ev.preventDefault();
+              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-paste', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  col: this.col,
+                  row: this.row
+                }
+              }));
+              return;
+          }
         }
       }
 
