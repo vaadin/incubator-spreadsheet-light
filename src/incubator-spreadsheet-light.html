@@ -188,7 +188,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             const colIndex = this._getColumnIndex(ev.detail.col);
 
             if (colIndex > 0) {
-              this._focusCell(this._referenceSequence[colIndex - 1].field, ev.detail.row);
+              this._focusCell(this._referenceSequence[colIndex - 1].field, ev.detail.row, ev.detail.ctrlDown);
             }
           });
 
@@ -196,7 +196,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             const colIndex = this._getColumnIndex(ev.detail.col);
 
             if (colIndex + 1 < this._referenceSequence.length) {
-              this._focusCell(this._referenceSequence[colIndex + 1].field, ev.detail.row);
+              this._focusCell(this._referenceSequence[colIndex + 1].field, ev.detail.row, ev.detail.ctrlDown);
             }
           });
 
@@ -232,11 +232,11 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
             });
         }
 
-        _focusCell(col, row) {
+        _focusCell(col, row, ctrlDown) {
           const targetCell = this._getCell(row, col);
 
           if (targetCell) {
-            targetCell.focus();
+            targetCell.focus(ctrlDown);
           }
         }
 
