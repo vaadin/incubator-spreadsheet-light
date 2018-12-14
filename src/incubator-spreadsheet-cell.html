@@ -39,7 +39,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
   <script>
     (function () {
       /**
-       * `<incubator-spreadsheet-cell>` is a template for incubator components.
+       * `<incubator-spreadsheet-cell>` is a cell in for incubator-spreadsheet-light.
        *
        * ```
        * <incubator-spreadsheet-cell>
@@ -87,49 +87,67 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         static get properties() {
           return {
+            /***
+             * Identifies the inner value of the cell.
+             */
             value: {
               type: String,
               value: '',
               reflectToAttribute: true
             },
 
-            editMode: {
-              type: Boolean,
-              value: false,
-              reflectToAttribute: true
-            },
-
+            /***
+             * Identifies whether the cell is selected/focused or not.
+             */
             selected: {
               type: Boolean,
               value: false,
               reflectToAttribute: true
             },
 
+            /***
+             * Column name indicator.
+             */
             col: {
               type: String
             },
 
+            /***
+             * The row number of the cell.
+             */
             row: {
               type: Number,
               reflectToAttribute: true
             },
 
+            /***
+             * CSS Background color value.
+             */
             backgroundColor: {
               type: String,
               reflectToAttribute: true
             },
 
+            /***
+             * CSS Text color value.
+             */
             textColor: {
               type: String,
               reflectToAttribute: true
             },
 
+            /***
+             * Indicates whether the cell contains a formula or not.
+             */
             hasFormula: {
               type: Boolean,
               value: false,
               reflectToAttribute: true
             },
 
+            /***
+             * Is the control key down or not.
+             */
             _ctrlDown: {
               type:Boolean,
               value: false
@@ -137,10 +155,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           };
         }
 
-        /**
-         * Array of strings describing multi-property observer methods and their
-         * dependant properties
-         */
         static get observers() {
           return [
             '_styleChanged(backgroundColor, textColor)'
