@@ -133,8 +133,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
             _ctrlDown: {
               type:Boolean,
-              value: false,
-              observer: '_ctrlChanged'
+              value: false
             }
           };
         }
@@ -152,10 +151,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
         focus(ctrlDown = false) {
           this.$.label.focus();
           this.set('_ctrlDown', ctrlDown);
-        }
-
-        _ctrlChanged(val) {
-          console.log('ctrl changed', val);
         }
 
         _styleChanged(backgroundColor, textColor) {
@@ -220,7 +215,6 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // Cmd key code: 91
           // V key: 86
           // Enter: 13
-          console.log('key down', this._ctrlDown);
           switch (ev.keyCode) {
             case 13:
               ev.preventDefault();
