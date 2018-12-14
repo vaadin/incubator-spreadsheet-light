@@ -195,11 +195,11 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           cell.setAttribute('value', initialValue);
 
           cell.addEventListener('incubator-spreadsheet-cell-key-up', (ev) => {
-            this._focusCell(ev.detail.col, ev.detail.row - 1);
+            this._focusCell(ev.detail.col, ev.detail.row - 1, ev.detail.ctrlDown);
           });
 
           cell.addEventListener('incubator-spreadsheet-cell-key-down', (ev) => {
-            this._focusCell(ev.detail.col, ev.detail.row + 1);
+            this._focusCell(ev.detail.col, ev.detail.row + 1, ev.detail.ctrlDown);
           });
 
           cell.addEventListener('incubator-spreadsheet-cell-key-left', (ev) => {
@@ -223,7 +223,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               this.push('_spreadsheetData', this._getEmptyRow());
             }
 
-            this._focusCell(ev.detail.col, ev.detail.row + 1);
+            this._focusCell(ev.detail.col, ev.detail.row + 1, ev.detail.ctrlDown);
           });
 
           cell.addEventListener('incubator-spreadsheet-cell-selected', (ev) => {
