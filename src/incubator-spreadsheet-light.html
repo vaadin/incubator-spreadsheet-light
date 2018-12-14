@@ -26,7 +26,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
   <script>
     (function () {
       /**
-       * `<incubator-spreadsheet-light>` is a template for incubator components.
+       * `<incubator-spreadsheet-light>` is a light weight spreadsheet.
        *
        * ```
        * <incubator-spreadsheet-light>
@@ -43,32 +43,50 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
 
         static get properties() {
           return {
+            /***
+             * Number of columns to render.
+             */
             colCount: {
               type: Number,
               value: 26,
               reflectToAttribute: true
             },
 
+            /***
+             * CSS Height value of the element.
+             */
             height: {
               type: String,
               reflectToAttribute: true
             },
 
+            /***
+             * Underlying spreadsheet data.
+             */
             _spreadsheetData: {
               type: Array,
               value: []
             },
 
+            /***
+             * Sequence to look for column names.
+             */
             _referenceSequence: {
               type: Array,
               computed: '_generateReferenceSequence(colCount)'
             },
 
+            /***
+             * Minumum number of rows to display.
+             */
             _minimumRowsToDisplay: {
               type: Number,
               value: 100
             },
 
+            /***
+             * Object indicating which cell is selected right now.
+             */
             _selectedCell: {
               type: Object
             }
