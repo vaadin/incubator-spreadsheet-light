@@ -65,7 +65,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           this._boundCellBlurred = this._cellBlurred.bind(this);
           this._boundLabelKeyDown = this._labelKeyDown.bind(this);
           this._boundLabelKeyUp = this._labelKeyUp.bind(this);
-          this._ctrlDown = false;
+          this.set('_ctrlDown', false);
         }
 
         connectedCallback() {
@@ -129,6 +129,12 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               type: Boolean,
               value: false,
               reflectToAttribute: true
+            },
+
+            _ctrlDown: {
+              type:Boolean,
+              value: false,
+              observer: '_ctrlChanged'
             }
           };
         }
@@ -143,8 +149,13 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           ];
         }
 
-        focus() {
+        focus(ctrlDown = false) {
           this.$.label.focus();
+          this.set('_ctrlDown', ctrlDown);
+        }
+
+        _ctrlChanged(val) {
+          console.log('ctrl changed', val);
         }
 
         _styleChanged(backgroundColor, textColor) {
@@ -199,7 +210,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           switch (ev.keyCode) {
             case 17:
             case 91:
-              this._ctrlDown = false;
+              this.set('_ctrlDown', false);
           }
         }
 
@@ -209,6 +220,7 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
           // Cmd key code: 91
           // V key: 86
           // Enter: 13
+          console.log('key down', this._ctrlDown);
           switch (ev.keyCode) {
             case 13:
               ev.preventDefault();
@@ -222,14 +234,17 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               }));
               return;
             case 37:
-              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-left', {
-                bubbles: true,
-                composed: true,
-                detail: {
-                  col: this.col,
-                  row: this.row
-                }
-              }));
+              if (this._ctrlDown) {
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-left', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row,
+                    ctrlDown: true
+                  }
+                }));
+              }
               return;
             case 38:
               this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-up', {
@@ -242,14 +257,17 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
               }));
               return;
             case 39:
-              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-right', {
-                bubbles: true,
-                composed: true,
-                detail: {
-                  col: this.col,
-                  row: this.row
-                }
-              }));
+              if (this._ctrlDown) {
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-right', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row,
+                    ctrlDown: true
+                  }
+                }));
+              }
               return;
             case 40:
               this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-key-down', {
@@ -261,20 +279,23 @@ See <a href="https://vaadin.com/license/cval-3">the website</a> for the complete
                 }
               }));
               return;
+            case 86:
+              if (this._ctrlDown) {
+                ev.preventDefault();
+                this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-paste', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    col: this.col,
+                    row: this.row,
+                    ctrlDown: true
+                  }
+                }));
+              }
+              return;
             case 17:
             case 91:
-              this._ctrlDown = true;
-              return;
-            case 86:
-              ev.preventDefault();
-              this.dispatchEvent(new CustomEvent('incubator-spreadsheet-cell-paste', {
-                bubbles: true,
-                composed: true,
-                detail: {
-                  col: this.col,
-                  row: this.row
-                }
-              }));
+              this.set('_ctrlDown', true);
               return;
           }
         }
