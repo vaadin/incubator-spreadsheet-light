@@ -6,21 +6,17 @@
 
 # &lt;incubator-spreadsheet-light&gt;
 
-[Live Demo ↗](https://vaadin.com/directory/component/vaadinincubator-element/html-examples)
-|
-[API documentation ↗](https://vaadin.com/directory/component/vaadinincubator-element/html-api)
+Live Demo ↗(https://incubator.app.fi/incubator-spreadsheet-light-demo/)
 
 
-[&lt;incubator-spreadsheet-light&gt;](https://vaadin.com/directory/component/vaadinincubator-element) is a Web Component providing an easy way to ask the user to confirm a choice, part of the [Vaadin components](https://vaadin.com/components).
+[&lt;incubator-spreadsheet-light&gt;](https://vaadin.com/directory/component/vaadinincubator-spreadsheet-light) is a Web Component providing basic functionalities of an spreadsheet.
 
 ```html
-  <incubator-spreadsheet-light header="Unsaved changes" confirm-text="Save" on-confirm="save"
-    cancel on-cancel="cancel" reject reject-text="Discard" on-reject="discard">
-    Do you want to save or discard your changes before navigating away?
+  <incubator-spreadsheet-light col-count="5" height="700px">
   </incubator-spreadsheet-light>
 ```
 
-[<img src="https://raw.githubusercontent.com/vaadin/incubator-spreadsheet-light/master/screenshot.png" width="200" alt="Screenshot of incubator-spreadsheet-light">](https://vaadin.com/directory/component/vaadinincubator-element)
+[<img src="https://raw.githubusercontent.com/vaadin/incubator-spreadsheet-light/master/screenshot.png" width="200" alt="Screenshot of incubator-spreadsheet-light">](https://vaadin.com/directory/component/vaadinincubator-spreadsheet-light)
 
 
 ## Installation
