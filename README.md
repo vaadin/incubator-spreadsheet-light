@@ -6,7 +6,7 @@
 
 # &lt;incubator-spreadsheet-light&gt;
 
-Live Demo ↗(https://incubator.app.fi/incubator-spreadsheet-light-demo/)
+[Live Demo ↗](https://incubator.app.fi/incubator-spreadsheet-light-demo/)
 
 
 [&lt;incubator-spreadsheet-light&gt;](https://vaadin.com/directory/component/vaadinincubator-spreadsheet-light) is a Web Component providing basic functionalities of an spreadsheet.
